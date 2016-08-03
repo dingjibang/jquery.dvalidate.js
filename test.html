@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+	<script src="jquery.js"></script>
+	<script src="jquery.dvalidate.js" charset="utf-8"></script>
+	<style>
+		form{display:table;border:1px solid black;padding:20px;}
+		input,select{margin-bottom:10px;border:1px solid #aaa;padding:5px;}
+		input[type='text'],select,button{display:block;}
+	</style>
+</head>
+<body>
+	<form id="form1" validate>
+		<input type="text" placeholder="not empty" check="empty"/>
+		<input type="text" placeholder="must number" check="empty number"/>
+		<input type="text" placeholder="custom error" check="empty" id="custom"/>
+		<input type="text" placeholder="disable validate"/>
+		<input type="text" placeholder="disabled but check" check="number" disabled />
+		
+		<select check="empty">
+			<option value="">--select please--</option>
+			<option value="1">xxxx</option>
+		</select>
+		
+		<input type="radio" name="group_1" value="asd" check="empty"/>radio1 
+		<input type="radio" name="group_1" value="123" check="empty"/>radio2 
+		
+		<button type="submit">submit</button>
+	</form>
+</body>
+<script>
+$("#custom").error(function(){
+	$(this).css("border","1px solid red");
+});
+</script>
+</html>
