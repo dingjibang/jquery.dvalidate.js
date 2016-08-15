@@ -49,13 +49,13 @@
 			};
 			
 			//注入监听事件
-			$(this).children("input[check],select[check]").not("[disabled]").on("blur change",checker);
+			$(this).find("input[check],select[check]").not("[disabled]").on("blur change",checker);
 			
 			//注入表单提交事件
 			$(this).submit(function(e){
 				var hasError = false;
 				//查询表单是否有错
-				$(this).children("input[check],select[check]").not("[disabled]").each(checker).each(function(){
+				$(this).find("input[check],select[check]").not("[disabled]").each(checker).each(function(){
 					hasError = this.error.has ? true : hasError;
 					if(this.error.has && !($(this).is("input") && $(this).attr("type") == "radio" && this != form.find("input[type='radio'][name='"+$(this).attr("name")+"']")[0]))
 						message($(this)[0]);
