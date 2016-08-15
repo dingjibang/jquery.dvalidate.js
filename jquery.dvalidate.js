@@ -1,7 +1,13 @@
 (function($){
-	$.fn.validate = function(options){
+	$.fn.validate = function(options) {
+		var i18n = typeof $.dvalidate != "undefined" && typeof $.dvalidate.i18n != "undefined" ? $.dvalidate.i18n : {
+			"number":"此属性必须为数字",
+			"empty":"此属性不能为空"
+		};
+		
 		//如果没有查询到dom元素则跳过
 		if($(this).length == 0) return;
+		var that = $(this);
 		
 		//提示器
 		var message = function(dom){
@@ -15,37 +21,45 @@
 				
 		};
 		
+		var _checker = function(that, returnFaild){
+			this.error = {has:false};
+			var isRadio = that.is("input") && that.attr("type") == "radio";
+			//阻止IE8进入事件监听死循环
+			if(typeof(window.event) != "undefined" && typeof(window.event.propertyName) != "undefined" && window.event.propertyName != "value") return;
+			
+			//获取验证类型
+			var check = function(str){
+				var arr = that.attr("check").split(" ");
+				for(var i in arr)
+					if(str == arr[i])
+						return true;
+				return false;
+			};
+			
+			//向dom元素内存入错误信息
+			var faild = function(str, type){
+				var error = {msg:str, dom:that, "type":type, has:true};
+				if(returnFaild) 
+					return error;
+				that[0].error = error;
+			};
+			
+			//验证：必须是数字
+			if(check("number") && isNaN(that.val()))
+				return faild(i18n.number,"number");
+			//验证：不为空
+			if((check("empty") && that.val().length == 0) || (isRadio && that.parents("form").find("input[type='radio'][name='"+that.attr("name")+"']:checked").val() == undefined))
+				return faild(i18n.empty,"empty");
+		};
+		
 		//遍历表单
+		if(typeof this.validateEnable == "undefined")
 		$(this).each(function(){
 			var form = $(this);
 			//验证器
 			var checker = function(){
 				var that = $(this);
-				this.error = {has:false};
-				var isRadio = $(this).is("input") && $(this).attr("type") == "radio";
-				//阻止IE8进入事件监听死循环
-				if(typeof(window.event) != "undefined" && typeof(window.event.propertyName) != "undefined" && window.event.propertyName != "value") return;
-				
-				//获取验证类型
-				var check = function(str){
-					var arr = that.attr("check").split(" ");
-					for(var i in arr)
-						if(str == arr[i])
-							return true;
-					return false;
-				};
-				
-				//向dom元素内存入错误信息
-				var faild = function(str, type){
-					that[0].error = {msg:str, dom:that, "type":type, has:true};
-				};
-				
-				//验证：必须是数字
-				if(check("number") && isNaN($(this).val()))
-					return faild("此属性必须为数字","number");
-				//验证：不为空
-				if((check("empty") && $(this).val().length == 0) || (isRadio && form.find("input[type='radio'][name='"+$(this).attr("name")+"']:checked").val() == undefined))
-					return faild("此属性不能为空","empty");
+				_checker(that, false);
 			};
 			
 			//注入监听事件
@@ -67,7 +81,18 @@
 				return true;
 			});
 		});
+		
+		this.validateEnable = true;
+
+		return {
+			check:function(selector){
+				var s = typeof selector == "string" ? that.find(selector) : selector;
+				var checkedResult =  _checker(s, true);
+				return checkedResult == undefined ? {"has":false} : checkedResult;
+			},
+		};
 	};
+	
 })(jQuery);
 
 $(function(){
