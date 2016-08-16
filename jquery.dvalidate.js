@@ -1,14 +1,13 @@
+window.Dvalidate = window.Dvalidate || {};
+
 (function($){
 	$.fn.validate = function(options) {
-		var Dvalidate = window.Dvalidate || {};
-		window.Dvalidate = Dvalidate;
 		
-		var i18n = typeof $.dvalidate != "undefined" && typeof Dvalidate.i18n != "undefined" ? Dvalidate.i18n : {
+		var i18n = window.Dvalidate.i18n = window.Dvalidate.i18n || {
 			"number":"此属性必须为数字",
 			"empty":"此属性不能为空"
 		};
 		
-		window.Dvalidate.i18n = i18n;
 		
 		//如果没有查询到dom元素则跳过
 		if($(this).length == 0) return;
@@ -53,7 +52,6 @@
 			if(check("number") && isNaN($(that).val()))
 				return faild(i18n.number,"number");
 			//验证：不为空
-			console.log(that);
 			if((check("empty") && $(that).val().length == 0) || (isRadio && $(that).parents("form").find("input[type='radio'][name='"+$(that).attr("name")+"']:checked").val() == undefined))
 				return faild(i18n.empty,"empty");
 		};
