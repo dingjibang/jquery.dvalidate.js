@@ -22,14 +22,14 @@
 		};
 		
 		var _checker = function(that, returnFaild){
-			this.error = {has:false};
-			var isRadio = that.is("input") && that.attr("type") == "radio";
+			if(!returnFaild) that.error = {has:false};
+			var isRadio = $(that).is("input") && $(that).attr("type") == "radio";
 			//阻止IE8进入事件监听死循环
 			if(typeof(window.event) != "undefined" && typeof(window.event.propertyName) != "undefined" && window.event.propertyName != "value") return;
 			
 			//获取验证类型
 			var check = function(str){
-				var arr = that.attr("check").split(" ");
+				var arr = $(that).attr("check").split(" ");
 				for(var i in arr)
 					if(str == arr[i])
 						return true;
@@ -41,14 +41,15 @@
 				var error = {msg:str, dom:that, "type":type, has:true};
 				if(returnFaild) 
 					return error;
-				that[0].error = error;
+				that.error = error;
 			};
 			
 			//验证：必须是数字
-			if(check("number") && isNaN(that.val()))
+			if(check("number") && isNaN($(that).val()))
 				return faild(i18n.number,"number");
 			//验证：不为空
-			if((check("empty") && that.val().length == 0) || (isRadio && that.parents("form").find("input[type='radio'][name='"+that.attr("name")+"']:checked").val() == undefined))
+			console.log(that);
+			if((check("empty") && $(that).val().length == 0) || (isRadio && $(that).parents("form").find("input[type='radio'][name='"+$(that).attr("name")+"']:checked").val() == undefined))
 				return faild(i18n.empty,"empty");
 		};
 		
@@ -58,12 +59,11 @@
 			var form = $(this);
 			//验证器
 			var checker = function(){
-				var that = $(this);
-				_checker(that, false);
+				_checker(this, false);
 			};
 			
 			//注入监听事件
-			$(this).find("input[check],select[check]").not("[disabled]").on("blur change",checker);
+			$(this).find("input[check],select[check]").not("[disabled]").on("blur change input",checker);
 			
 			//注入表单提交事件
 			$(this).submit(function(e){
