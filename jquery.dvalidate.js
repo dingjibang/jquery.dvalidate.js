@@ -1,9 +1,14 @@
 (function($){
 	$.fn.validate = function(options) {
-		var i18n = typeof $.dvalidate != "undefined" && typeof $.dvalidate.i18n != "undefined" ? $.dvalidate.i18n : {
+		var Dvalidate = window.Dvalidate || {};
+		window.Dvalidate = Dvalidate;
+		
+		var i18n = typeof $.dvalidate != "undefined" && typeof Dvalidate.i18n != "undefined" ? Dvalidate.i18n : {
 			"number":"此属性必须为数字",
 			"empty":"此属性不能为空"
 		};
+		
+		window.Dvalidate.i18n = i18n;
 		
 		//如果没有查询到dom元素则跳过
 		if($(this).length == 0) return;
