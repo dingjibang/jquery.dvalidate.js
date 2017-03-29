@@ -2,7 +2,7 @@
 <html>
 <head>
 	<script src="jquery.js"></script>
-	<script src="jquery.dvalidate.js" charset="utf-8"></script>
+	<script src="jquery.dvalidate.min.js" charset="utf-8"></script>
 	<style>
 		form{display:table;border:1px solid black;padding:20px;}
 		input,select{margin-bottom:10px;border:1px solid #aaa;padding:5px;}
@@ -10,20 +10,25 @@
 	</style>
 </head>
 <body>
+	<!--一定要在form上加上属性[validate]才能验证该form下面的field哦:) -->
 	<form id="form1" validate>
-		<input type="text" placeholder="not empty" check="empty"/>
-		<input type="text" placeholder="must number" check="empty number"/>
-		<input type="text" placeholder="custom error" check="empty" id="custom"/>
-		<input type="text" placeholder="disable validate"/>
-		<input type="text" placeholder="disabled but check" check="number" disabled />
+		<input type="text" placeholder="不为空验证" check="empty"/>
+		<input type="text" placeholder="必须是数字" check="empty number"/>
+		<input type="text" placeholder="自定义错误提示效果" check="empty" id="custom"/>
+		<input type="text" placeholder="不验证本文本框"/>
+		<input type="text" placeholder="不能大于10位字符" check="empty max" max="10" />
+		<input type="text" placeholder="不能小于3位字符" check="empty min" min="3" />
+		<input type="text" placeholder="必须是邮箱格式" check="empty email" />
+		<input type="text" placeholder="只能数字+字母" check="empty character" />
+
 		
 		<select check="empty">
 			<option value="">--select please--</option>
 			<option value="1">xxxx</option>
 		</select>
 		
-		<input type="radio" name="group_1" value="asd" check="empty"/>radio1 
-		<input type="radio" name="group_1" value="123" check="empty"/>radio2 
+		<label><input type="radio" name="group_1" value="asd" check="empty"/>radio1 </label>
+		<label><input type="radio" name="group_1" value="123" check="empty"/>radio2 </label>
 		
 		<button type="submit">submit</button>
 	</form>
