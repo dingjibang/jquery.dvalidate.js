@@ -1,3 +1,7 @@
+/**
+ * 简单表单验证组件
+ * @author dingjibang
+ */
 window.Dvalidate = window.Dvalidate || {};
 
 (function($){
@@ -5,7 +9,12 @@ window.Dvalidate = window.Dvalidate || {};
 		
 		var i18n = window.Dvalidate.i18n = window.Dvalidate.i18n || {
 			"number":"此属性必须为数字",
-			"empty":"此属性不能为空"
+			"empty":"此属性不能为空",
+			"space":"不能包含空格",
+			"max":"长度不能大于{{}}位",
+			"min":"长度不能小于{{}}位",
+			"character":"只能是数字/字母类型的字符",
+			"email":"邮箱格式不正确",
 		};
 		
 		
@@ -20,14 +29,20 @@ window.Dvalidate = window.Dvalidate || {};
 			if(typeof($._data(dom,"events")) != "undefined" && typeof($._data(dom,"events").error) != "undefined"){
 				$(dom).error();
 			}else{
-				layTip.tips(dom.error.msg, dom, {tipsMore:true});
+				var id = "layTip"+Math.random();
+				var msg = dom.error.msg;
+				if($(dom).attr("error"))
+					dom = eval("$(dom)." + $(dom).attr("error") + "()");
+				var layId = layTip.tips("<span id='"+id+"'>"+msg+"</span>", dom, {tipsMore:true,scrollbar: true, zIndex: 99});
+				$("#"+id).one("mouseenter", function(){layTip.close(layId);});
+				$(dom).one("mouseenter", function(){layTip.close(layId);});
 			}
 				
 		};
 		
 		var _checker = function(that, returnFaild){
 			if(!returnFaild) that.error = {has:false};
-			var isRadio = $(that).is("input") && $(that).attr("type") == "radio";
+			var isRadio = $(that).is("input[type='radio']");
 			//阻止IE8进入事件监听死循环
 			if(typeof(window.event) != "undefined" && typeof(window.event.propertyName) != "undefined" && window.event.propertyName != "value") return;
 			
@@ -37,6 +52,7 @@ window.Dvalidate = window.Dvalidate || {};
 				for(var i in arr)
 					if(str == arr[i])
 						return true;
+				
 				return false;
 			};
 			
@@ -49,50 +65,95 @@ window.Dvalidate = window.Dvalidate || {};
 			};
 			
 			//验证：必须是数字
-			if(check("number") && isNaN($(that).val()))
-				return faild(i18n.number,"number");
+			if(check("number") && ($(that).val() == null || isNaN($(that).val())))
+				return faild(i18n.number, "number");
 			//验证：不为空
-			if((check("empty") && $(that).val().length == 0) || (isRadio && $(that).parents("form").find("input[type='radio'][name='"+$(that).attr("name")+"']:checked").val() == undefined))
-				return faild(i18n.empty,"empty");
+			if((check("empty") && ($(that).val() == null || $(that).val().trim().length == 0) || (isRadio && $(that).parents("[dvalidate]").find("input[type='radio'][name='"+$(that).attr("name")+"']:checked").val() == undefined)))
+				return faild(i18n.empty, "empty");
+			
+			//验证：大于长度
+			if(check("max")){
+				var max = parseInt($(that).attr("max"));
+				if($(that).val().length > max)
+				return faild(_detail(i18n.max, [max]) , "max");
+			}
+			
+			//验证：小于长度
+			if(check("min")){
+				var min = parseInt($(that).attr("min"));
+				if($(that).val().length < min)
+				return faild(_detail(i18n.min, [min]) , "min");
+			}
+			
+			//验证：email
+			if(check("email")){
+				if(!(/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i).test($(that).val()))
+					return faild(i18n.email , "email");
+			}
+			
+			//验证：数字+英文+字符
+			if(check("character") && (/[^\w\.\/]/ig).test($(that).val()))
+				return faild(i18n.character , "character");
 		};
+		
+		//验证器
+		var checker = function(){
+			_checker(this, false);
+		};
+		
+		var submitCheck = function(_that){
+			var hasError = false;
+			//查询表单是否有错
+			$(_that).find("input[check],select[check],textarea[check]").not("[disabled]").each(checker).each(function(){
+				hasError = this.error.has ? true : hasError;
+				if(this.error.has && !($(this).is("input[type='radio']") && this != $(_that).find("input[type='radio'][name='"+$(this).attr("name")+"']")[0]))
+					message($(this)[0]);
+			});
+			
+			return hasError;
+		};
+		
 		
 		//遍历表单
 		if(typeof this.validateEnable == "undefined")
 		$(this).each(function(){
 			var form = $(this);
-			//验证器
-			var checker = function(){
-				_checker(this, false);
-			};
 			
 			//注入监听事件
 			$(this).find("input[check],select[check]").not("[disabled]").on("blur change input",checker);
 			
 			//注入表单提交事件
 			$(this).submit(function(e){
-				var hasError = false;
-				//查询表单是否有错
-				$(this).find("input[check],select[check]").not("[disabled]").each(checker).each(function(){
-					hasError = this.error.has ? true : hasError;
-					if(this.error.has && !($(this).is("input") && $(this).attr("type") == "radio" && this != form.find("input[type='radio'][name='"+$(this).attr("name")+"']")[0]))
-						message($(this)[0]);
-				});
+				var hasError = submitCheck(this);
 				
 				//有错误则拦截表单提交
-				if(hasError) e.preventDefault();
+				if(hasError) {
+					e.preventDefault();
+					$(this).error();
+				}
 				
 				return true;
 			});
 		});
 		
 		this.validateEnable = true;
+		
+		var _detail = function(str,vals){
+			for(var i in vals)
+				str = str.replace("{{}}", vals[i]);
+			return str;
+		}
 
 		return {
 			check:function(selector){
-				var s = typeof selector == "string" ? that.find(selector) : selector;
-				var checkedResult =  _checker(s, true);
-				return checkedResult == undefined ? {"has":false} : checkedResult;
-			},
+				if(selector){
+					var s = typeof selector == "string" ? that.find(selector) : selector;
+					var checkedResult =  _checker(s, true);
+					return checkedResult == undefined ? {"has":false} : checkedResult;
+				}else{
+					return !submitCheck(that);
+				}
+			}
 		};
 	};
 	
@@ -102,7 +163,6 @@ $(function(){
 	//自动注册
 	$("form[validate]").validate();
 });
-
 
 /*!
  @Name：layer v2.4 弹层组件精简版，只保留tips功能，集成css
