@@ -1,7 +1,7 @@
 # jquery.dvalidate.js
 自用的超简单表单验证框架，零配置不写js不污染页面样式直接就是lou
 <br>
-在线示例：[http://www.rpsg-team.com/dvalidate/](http://www.rpsg-team.com/dvalidate/)
+在线示例：[http://www.rpsg.team/dvalidate/](http://www.rpsg-team.com/dvalidate/)
 
 # 使用方法
 1.引入js
